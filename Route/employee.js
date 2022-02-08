@@ -34,7 +34,6 @@ router.get("/create-emp", (req, res) => {
 router.get("/:id", async (req, res) => {
   let payload = await EMPLOYEE_SCHEMA.findOne({ _id: req.params.id }).lean();
   res.render("../views/employees/employeeProfile", { payload });
-  console.log(payload);
 });
 
 /*@HTTP GET METHOD
@@ -47,7 +46,6 @@ router.get("/edit-emp/:id", async (req, res) => {
     _id: req.params.id,
   }).lean();
   res.render("../views/employees/editEmp", { editPayload });
-  console.log(editPayload);
 });
 
 /*================END ALL GET METHODS====================*/
@@ -87,6 +85,7 @@ router.post("/create-emp", upload.single("emp_photo"), async (req, res) => {
   };
   // save all data to database
   let body = await EMPLOYEE_SCHEMA.create(payload);
+  req.flash("SUCCESS_MESSAGE", "successfully employee created");
   res.redirect("/employee/home", 302, { body });
 });
 
@@ -111,11 +110,13 @@ router.put("/edit-emp/:id", upload.single("emp_photo"), (req, res) => {
         (editEmp.emp_location = req.body.emp_location);
       //update data in database
       editEmp.save().then(_ => {
+        req.flash("SUCCESS_MESSAGE", "successfully employee updated");
         res.redirect("/employee/home", 302, {});
       });
     })
     .catch(err => {
       console.log(err);
+      req.flash("ERROR_MESSAGE", "something went wrong");
     });
 });
 /*---------------PUT REQUEST END HERE ------------*/
@@ -123,6 +124,7 @@ router.put("/edit-emp/:id", upload.single("emp_photo"), (req, res) => {
 /*---------------DELETE REQUEST START HERE ------------*/
 router.delete("/delete-emp/:id", async (req, res) => {
   await EMPLOYEE_SCHEMA.deleteOne({ _id: req.params.id });
+  req.flash("SUCCESS_MESSAGE", "successfully employee deleted");
   res.redirect("/employee/home", 302, {});
 });
 /*---------------DELETE REQUEST END HERE ------------*/
