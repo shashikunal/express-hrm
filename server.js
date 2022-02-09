@@ -1,6 +1,7 @@
 const express = require("express");
 const { connect } = require("mongoose");
 const { engine } = require("express-handlebars");
+const passport = require("passport");
 const Handlebars = require("handlebars");
 const methodOverride = require("method-override");
 const flash = require("connect-flash");
@@ -12,7 +13,7 @@ const { join } = require("path");
 const EmployeeRoute = require("./Route/employee");
 const AuthRoute = require("./Route/auth");
 const app = express();
-
+require("./middlewares/passport")(passport);
 //! ==================database connection STARTS here=======================//
 let DatabaseConnection = async () => {
   await connect(MONGODB_URL);
@@ -43,6 +44,9 @@ app.use(
   })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 //connect flash  middleware
 app.use(flash());
 //?  ===========BUILT-IN MIDDLEWARE ENDS HERE=============================//
@@ -58,6 +62,7 @@ app.use(function (req, res, next) {
   res.locals.SUCCESS_MESSAGE = req.flash("SUCCESS_MESSAGE");
   res.locals.ERROR_MESSAGE = req.flash("ERROR_MESSAGE");
   res.locals.errors = req.flash("errors");
+  res.locals.error = req.flash("error");
   next();
 });
 
