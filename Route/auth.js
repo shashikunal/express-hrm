@@ -18,6 +18,16 @@ router.get("/login", (req, res) => {
   res.render("../views/auth/login", {});
 });
 
+/*@ HTTP GET REQUEST
+@ACCESS PRIVATE
+@URL /auth/logout
+*/
+router.get("/logout", async (req, res) => {
+  req.logout();
+  req.flash("SUCCESS_MESSAGE", "successfully logged out");
+  res.redirect("/auth/login", 302, {});
+});
+
 /*@ HTTP POST REQUEST
 @ACCESS PUBLIC
 @URL /auth/register
@@ -86,7 +96,7 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", {
-    successRedirect: "/employee/home",
+    successRedirect: "/employee/emp-profile",
     failureRedirect: "/auth/login",
     failureFlash: true,
   })(req, res, next);

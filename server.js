@@ -57,12 +57,20 @@ Handlebars.registerHelper("trimFirst6Char", function (passedString) {
   return new Handlebars.SafeString(theString);
 });
 
+Handlebars.registerHelper("json", function (context) {
+  return JSON.stringify(context);
+});
+
 //?==============set global variables===========================//
 app.use(function (req, res, next) {
   res.locals.SUCCESS_MESSAGE = req.flash("SUCCESS_MESSAGE");
   res.locals.ERROR_MESSAGE = req.flash("ERROR_MESSAGE");
   res.locals.errors = req.flash("errors");
   res.locals.error = req.flash("error");
+  res.locals.user = req.user || null;
+  let userData = req.user || null;
+  res.locals.finalData = Object.create(userData);
+  res.locals.username = res.locals.finalData.username;
   next();
 });
 

@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const multer = require("multer");
 const EMPLOYEE_SCHEMA = require("../Model/Employee");
+const { ensureAuthenticated } = require("../helper/auth_helper");
 const router = Router();
 
 //?load multer middleware
@@ -12,15 +13,26 @@ const upload = multer({ storage: storage });
   @URL employee/home
 */
 router.get("/home", async (req, res) => {
-  let payload = await EMPLOYEE_SCHEMA.find({}).lean();
+  let payload = await EMPLOYEE_SCHEMA.find().lean();
   res.render("../views/home", { title: "Home page", payload });
 });
 
 /*@HTTP GET METHOD
   @ACCESS PUBLIC
+  @URL employee/home
+*/
+
+router.get("/emp-profile", ensureAuthenticated, async (req, res) => {
+  let payload = await EMPLOYEE_SCHEMA.find({ user: req.user.id }).lean();
+  res.render("../views/employees/emp-profile", { title: "Home page", payload });
+});
+
+/*@HTTP GET METHOD
+  @ACCESS PRIVATE
   @URL employee/create-emp
 */
-router.get("/create-emp", (req, res) => {
+
+router.get("/create-emp", ensureAuthenticated, (req, res) => {
   res.render("../views/employees/create-emp", { title: "create employee" });
 });
 
@@ -32,7 +44,10 @@ router.get("/create-emp", (req, res) => {
 */
 
 router.get("/:id", async (req, res) => {
-  let payload = await EMPLOYEE_SCHEMA.findOne({ _id: req.params.id }).lean();
+  let payload = await EMPLOYEE_SCHEMA.findOne({
+    _id: req.params.id,
+    user: req.user.id,
+  }).lean();
   res.render("../views/employees/employeeProfile", { payload });
 });
 
@@ -41,7 +56,7 @@ router.get("/:id", async (req, res) => {
   @URL employee/edit-emp
 
 */
-router.get("/edit-emp/:id", async (req, res) => {
+router.get("/edit-emp/:id", ensureAuthenticated, async (req, res) => {
   let editPayload = await EMPLOYEE_SCHEMA.findOne({
     _id: req.params.id,
   }).lean();
@@ -54,40 +69,46 @@ router.get("/edit-emp/:id", async (req, res) => {
 /*@HTTP POST METHOD
   @ACCESS PRIVATE
   @URL employee/create-emp*/
-router.post("/create-emp", upload.single("emp_photo"), async (req, res) => {
-  let {
-    emp_id,
-    emp_name,
-    emp_salary,
-    emp_edu,
-    emp_exp,
-    emp_location,
-    emp_des,
-    emp_email,
-    emp_phone,
-    emp_skills,
-    emp_gender,
-  } = req.body;
+router.post(
+  "/create-emp",
+  ensureAuthenticated,
+  upload.single("emp_photo"),
+  async (req, res) => {
+    let {
+      emp_id,
+      emp_name,
+      emp_salary,
+      emp_edu,
+      emp_exp,
+      emp_location,
+      emp_des,
+      emp_email,
+      emp_phone,
+      emp_skills,
+      emp_gender,
+    } = req.body;
 
-  let payload = {
-    emp_photo: req.file,
-    emp_id,
-    emp_name,
-    emp_salary,
-    emp_edu,
-    emp_exp,
-    emp_location,
-    emp_des,
-    emp_email,
-    emp_phone,
-    emp_skills,
-    emp_gender,
-  };
-  // save all data to database
-  let body = await EMPLOYEE_SCHEMA.create(payload);
-  req.flash("SUCCESS_MESSAGE", "successfully employee created");
-  res.redirect("/employee/home", 302, { body });
-});
+    let payload = {
+      emp_photo: req.file,
+      emp_id,
+      emp_name,
+      emp_salary,
+      emp_edu,
+      emp_exp,
+      emp_location,
+      emp_des,
+      emp_email,
+      emp_phone,
+      emp_skills,
+      emp_gender,
+      user: req.user.id,
+    };
+    // save all data to database
+    let body = await EMPLOYEE_SCHEMA.create(payload);
+    req.flash("SUCCESS_MESSAGE", "successfully employee created");
+    res.redirect("/employee/emp-profile", 302, { body });
+  }
+);
 
 /*================END ALL POST METHODS====================*/
 

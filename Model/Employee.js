@@ -53,6 +53,10 @@ const EmpSchema = new Schema(
       type: [""],
       required: true,
     },
+    user: {
+      type: [""],
+      required: true,
+    },
   },
   { timestamps: true }
 );
